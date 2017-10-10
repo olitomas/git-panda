@@ -1,5 +1,6 @@
 const ipc = require('electron').ipcRenderer;
 const remote = require('electron').remote;
+const shell = require('electron').shell;
 const spawn = require('child_process').spawn;
 var fs = require('fs');
 var main = remote.require('./main.js');
@@ -17,258 +18,364 @@ let data = {
     waitHours: 4
 };
 
-const init = () => {
-    getData().then((data) => {
-        rivets.bind(document.getElementById('body'), {
-            data: data,
-            refreshRepos: refreshRepos,
-            removeItem: removeItem,
-            changeCronJob: changeCronJob,
+class GitPanda{
+    constructor() {
+        this.getData().then((data) => {
+            this.data = data || data;
+            console.log(data);
+
+            rivets.bind(document.getElementById('body'), {
+                app: this
+            });
+
+            this.startCronJob(data.waitHours);
         });
 
-        startCronJob(data.waitHours);
-    });
-    setEvents();
-};
+        this.setEvents();
+    }
 
-const checkGitStatus = (path, name) => {
-    return new Promise((resolve, reject) => {
+    ipcEvents() {
+        // Add new repo
+        const selectDirBtn = document.getElementById('btn');
 
-        var fs = require('fs');
-        if (!fs.existsSync(path)) {
-            new Alert('Something is wrong with this directory: ' + name);
-            resolve({error: true});
-            return;
-        }
-
-        const command = spawn('git status', {
-            cwd: path,
-            shell: true
+        selectDirBtn.addEventListener('click', (event) => {
+            ipc.send('open-file-dialog');
         });
 
-        // Gets called when the bash script is successfull
-        command.stdout.on('data', data => {
-            let workingTreeClean = false;
-            let branchIsAhead = false;
+        ipc.on('selected-directory', (event, path) => {
+            // document.getElementById('selected-file').innerHTML = `${path}`
+            const url = path[0];
+            const status = this.checkGitStatus({path: url}).then(rsp => {
+                if (rsp.error) {
+                    new Alert('danger', {
+                        title: 'Something went terribly wrong',
+                        message: 'Well, maybe not terribly....are you sure this is a Git directory ?',
+                        timer: 10
+                    });
+                    return;
+                }
 
-            if (`${data}`.indexOf('working tree clean') > -1) {
-                workingTreeClean = true;
-            }
-
-            if (`${data}`.indexOf('branch is ahead of') > -1) {
-                branchIsAhead = true;
-            }
-
-            const pathSplit = path.split(/[\\\/]/);
-            const projectName = pathSplit[pathSplit.length - 1];
-
-            resolve({
-                name: projectName,
-                path: path,
-                workingTreeClean: workingTreeClean,
-                branchIsAhead: branchIsAhead,
-                error: null
+                this.saveDirectory(rsp).then(() => {
+                    this.refreshRepos();
+                    new Alert('success', {
+                        title: 'Success',
+                        message: 'Well done! Your repo has been added to the list'
+                    });
+                });
             });
         });
 
-        // Gets called when the bash script returns an error
-        command.stderr.on('data', err => {
-            resolve({ error: true });
+        ipc.on('ping', (event, message) => {
+            if (message === 'refresh') {
+                this.refreshRepos();
+            }
         });
+    }
 
-        // ls.on('close', (code) => {
-        //   console.log(`child process exited with code ${code}`);
-        // });
-    });
-};
+    setEvents() {
 
-const setEvents = () => {
-    const selectDirBtn = document.getElementById('btn');
+        this.ipcEvents();
 
-    selectDirBtn.addEventListener('click', function(event) {
-        ipc.send('open-file-dialog');
-    });
+        // Register
+        const registerBtn = document.getElementById('registerBtn');
+        registerBtn.addEventListener('click', (event) => {
+            this.registerDialog();
+        });
+    }
 
-    ipc.on('selected-directory', function(event, path) {
-        // document.getElementById('selected-file').innerHTML = `${path}`
-        const url = path[0];
-        const status = checkGitStatus(url).then(rsp => {
-            if (rsp.error) {
-                new Alert('danger', {
-                    title: 'Something went terribly wrong',
-                    message: 'Well, maybe not terribly....are you sure this is a Git directory ?',
-                    timer: 10
+    registerDialog() {
+        new Modal({
+            title: 'Register',
+            message: `
+                <div class="ui text-container">
+                    Hello world
+                </div>
+                <div class="ui button">
+                    Hello world
+                </div>
+
+
+                <div class="ui middle aligned stackable grid container">
+                  <div class="row">
+                    <div class="eight wide column">
+                      <h3 class="ui header">We Help Companies and Companions</h3>
+                      <p>We can give your company superpowers to do things that they never thought possible. Let us delight your customers and empower your needs...through pure data analytics.</p>
+                      <h3 class="ui header">We Make Bananas That Can Dance</h3>
+                      <p>Yes that's right, you thought it was the stuff of dreams, but even bananas can be bioengineered.</p>
+                    </div>
+                    <div class="six wide right floated column">
+                      <img src="assets/images/wireframe/white-image.png" class="ui large bordered rounded image">
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="center aligned column">
+                      <a class="ui huge button">Check Them Out</a>
+                    </div>
+                  </div>
+                </div>
+            `,
+        });
+    }
+
+    checkGitStatus(obj, index) {
+        const path = obj.path;
+        const name = obj.name;
+
+        return new Promise((resolve, reject) => {
+            var fs = require('fs');
+
+            if (!fs.existsSync(path)) {
+                new Modal('danger', {
+                    title: 'Something is wrong with this directory: ' + name,
+                    message: 'Path for project cant be found, so it was removed from git-panda...did you move or rename your project ?'
                 });
+
+                if(index){
+                    this.data.gitPaths.splice(index, 1);
+                    this.saveData().then(() => {
+                        this.refreshRepos();
+                    });
+                }
+
+                resolve({error: true});
                 return;
             }
 
-            saveDirectory(rsp).then(() => {
-                refreshRepos();
-                new Alert('success', {
-                    title: 'Success',
-                    message: 'Well done! Your repo has been added to the list'
+            const command = spawn('git status', {
+                cwd: path,
+                shell: true
+            });
+
+            // Gets called when the bash script is successfull
+            command.stdout.on('data', data => {
+                let workingTreeClean = false;
+                let branchIsAhead = false;
+
+                if (`${data}`.indexOf('working tree clean') > -1) {
+                    workingTreeClean = true;
+                }
+
+                if (`${data}`.indexOf('branch is ahead of') > -1) {
+                    branchIsAhead = true;
+                }
+
+                const pathSplit = path.split(/[\\\/]/);
+                const projectName = pathSplit[pathSplit.length - 1];
+
+                resolve({
+                    name: projectName,
+                    path: path,
+                    workingTreeClean: workingTreeClean,
+                    branchIsAhead: branchIsAhead,
+                    error: null
                 });
             });
+
+            // Gets called when the bash script returns an error
+            command.stderr.on('data', err => {
+                resolve({ error: true });
+            });
+
+            // ls.on('close', (code) => {
+            //   console.log(`child process exited with code ${code}`);
+            // });
         });
-    });
 
-    ipc.on('ping', function(event, message) {
-        if (message === 'refresh') {
-            refreshRepos();
-        }
-    });
-};
-
-const changeCronJob = (a,b) => {
-    var value = a.target.value;
-
-    if(value && !isNaN(value)){
-        startCronJob(value);
-        document.getElementById('reminderInput').classList.remove('error');
-        saveData();
-    }else{
-        document.getElementById('reminderInput').classList.add('error');
     }
-};
 
-const startCronJob = (cronTime) => {
+    changeCronJob(a,b) {
+        var value = a.target.value;
 
-    cronTime = cronTime || 4;
+        if(value && !isNaN(value)){
+            b.app.startCronJob(value);
+            document.getElementById('reminderInput').classList.remove('error');
+            b.app.saveData();
+        }else{
+            document.getElementById('reminderInput').classList.add('error');
+        }
+    }
 
-    if(cronTask) cronTask.stop();
+    startCronJob (cronTime) {
 
-    //Cron job
-    cronTask = new CronJob({
-      cronTime: '* * */' + cronTime + ' * * * ',
-      onTick: function() {
-        refreshRepos().then(rsp => {
-            if (!rsp.allClean) {
-                notifyUser(
-                    'You have git repos that need love <3',
-                    rsp.unclean.join(',')
-                );
+        cronTime = cronTime || 4;
+
+        if(cronTask) cronTask.stop();
+
+        //Cron job
+        cronTask = new CronJob({
+          cronTime: '10 */' + cronTime + ' * * * ',
+          onTick: () => {
+            this.refreshRepos().then(rsp => {
+                if (!rsp.allClean) {
+                    this.notifyUser(
+                        'You have git repos that need love <3',
+                        rsp.unclean.join(',')
+                    );
+                }
+            });
+          },
+          start: false,
+          timeZone: 'America/Los_Angeles'
+        });
+
+        cronTask.start();
+    }
+
+    getData() {
+        return new Promise((resolve) => {
+            fs.readFile(userPath + '/data.json', 'utf8', (err, d) => {
+                data = d ? JSON.parse(d) : data;
+                console.log('getting data', data);
+                resolve(data);
+            });
+        });
+    }
+
+    checkIfPathExists (arr, path) {
+        let exists = false;
+        let index = false;
+
+        arr.forEach((value, i) => {
+            const oldPath = value.path;
+
+            if (path === oldPath) {
+                exists = true;
+                index = i;
             }
         });
-      },
-      start: false,
-      timeZone: 'America/Los_Angeles'
-    });
 
-    cronTask.start();
-};
+        return { exists: exists, index: index };
+    }
 
-const getData = () => {
-    return new Promise((resolve) => {
-        fs.readFile(userPath + '/data.json', 'utf8', (err, d) => {
-            data = d ? JSON.parse(d) : data;
-            resolve(data);
+    saveDirectory(obj) {
+        return new Promise((resolve, reject) => {
+            const pathTest = this.checkIfPathExists(data.gitPaths, obj.path);
+
+            if (!pathTest.exists) {
+                data.gitPaths.push(obj);
+                this.saveData().then(() => {
+                    resolve({ success: true });
+                });
+            } else {
+                data.gitPaths[pathTest.index] = obj;
+                this.saveData().then(() => {
+                    resolve({ success: true });
+                });
+            }
         });
-    });
-};
+    }
 
-const checkIfPathExists = (arr, path) => {
-    let exists = false;
-    let index = false;
-
-    arr.forEach((value, i) => {
-        const oldPath = value.path;
-
-        if (path === oldPath) {
-            exists = true;
-            index = i;
-        }
-    });
-
-    return { exists: exists, index: index };
-};
-
-const saveDirectory = obj => {
-    return new Promise((resolve, reject) => {
-        const pathTest = checkIfPathExists(data.gitPaths, obj.path);
-
-        if (!pathTest.exists) {
-            data.gitPaths.push(obj);
-            saveData().then(() => {
+    saveData() {
+        return new Promise((resolve, reject) => {
+            console.log('userPath', userPath);
+            console.log('this.data', this.data);
+            fs.writeFile((userPath + '/data.json'), JSON.stringify(this.data), 'utf8', (rsp, error) => {
+                console.log(rsp);
+                console.log(error);
                 resolve({ success: true });
             });
-        } else {
-            data.gitPaths[pathTest.index] = obj;
-            saveData().then(() => {
-                resolve({ success: true });
-            });
-        }
-    });
-};
-
-const saveData = () => {
-    return new Promise((resolve, reject) => {
-        fs.writeFile(userPath + '/data.json', JSON.stringify(data), 'utf8', rsp => {
-            resolve({ success: true });
         });
-    });
-};
+    }
 
-const removeItem = (a, b) => {
-    const index = b.$index;
-    b.$parent.data.gitPaths.splice(index, 1);
-    saveData().then(() => {
-        refreshRepos();
-    });
-};
+    removeItem (a, b) {
+        const self = b ? b.$parent.app : this;
+        const index = b.$index;
+        self.data.gitPaths.splice(index, 1);
+        self.saveData().then(() => {
+            self.refreshRepos();
+        });
+    }
 
-const notifyUser = (title, message) => {
-    // Do this from the renderer process
-    var notif = new window.Notification(title, {
-      body: message
-    });
+    openItemFolder (a, b) {
+        console.log('calling openItemFolder');
+        const self = b ? b.$parent.app : this;
+        const index = b.$index;
+        const path = self.data.gitPaths[index].path;
 
-    // If the user clicks in the Notifications Center, show the app
-    notif.onclick = function () {
-      main.showMainWindow();
-    };
-};
+        shell.showItemInFolder(path);
+    }
 
-const refreshRepos = () => {
-    return new Promise((resolve, reject) => {
-        let allClean = true;
-        let unclean = [];
-        let counter = 0;
-        let len = data.gitPaths.length;
+    openItemInTerminal (a, b) {
+        console.log('calling openItemInTerminal');
+        const self = b ? b.$parent.app : this;
+        const index = b.$index;
+        const path = self.data.gitPaths[index].path;
 
-        if (len) {
-            document.getElementById('refreshIcon').classList.add('loading');
-        } else {
-            data.allClean = true;
-            saveData();
-        }
+        var child = spawn(
+             'D:\\DEV\\apache-tomcat-8.0.12\\bin\\startup.bat',
+             {
+                 env: {'CATALINA_HOME': 'D:\\DEV\\apache-tomcat-8.0.12'},
+                detached: true 
+             }
+        );
 
-        data.gitPaths.forEach((obj, key) => {
-            checkGitStatus(obj.path, obj.name).then(statusObj => {
-                if (!statusObj.workingTreeClean){
-                    allClean = false;
-                    const name = statusObj.name;
-                    unclean.push(name);
-                }
-                saveDirectory(statusObj).then(() => {
-                    counter++;
 
-                    if (counter === len) {
-                        //Hack to update rivets view
-                        data.allClean = allClean;
-                        data.gitPaths.reverse();
-                        data.gitPaths.reverse();
-                        setTimeout(() => {
-                            document
-                                .getElementById('refreshIcon')
-                                .classList.remove('loading');
-                        }, 500);
+        var child = spawn('test',{
+            // stdio: 'inherit'
+            cwd: path,
+            detached: true,
+            shell: true
+        });
 
-                        resolve({ allClean: allClean, unclean: unclean });
+        child.on('exit', function (e, code) {
+            console.log("finished");
+        });
+    }
+    
+    notifyUser (title, message) {
+        // Do this from the renderer process
+        var notif = new window.Notification(title, {
+          body: message
+        });
+
+        // If the user clicks in the Notifications Center, show the app
+        notif.onclick = () => {
+          main.showMainWindow();
+        };
+    }
+
+    refreshRepos(a, b) {
+        const self = b ? b.app : this;
+        return new Promise((resolve, reject) => {
+            let allClean = true;
+            let unclean = [];
+            let counter = 0;
+            let len = data.gitPaths.length;
+
+            if (len) {
+                document.getElementById('refreshIcon').classList.add('loading');
+            } else {
+                data.allClean = true;
+            }
+
+            data.gitPaths.forEach((obj, key) => {
+                self.checkGitStatus(obj, key).then(statusObj => {
+                    if (!statusObj.workingTreeClean){
+                        allClean = false;
+                        const name = statusObj.name;
+                        unclean.push(name);
                     }
+                    self.saveDirectory(statusObj).then(() => {
+                        counter++;
+
+                        if (counter === len) {
+                            //Hack to update rivets view
+                            data.allClean = allClean;
+                            data.gitPaths.reverse();
+                            data.gitPaths.reverse();
+                            setTimeout(() => {
+                                document
+                                    .getElementById('refreshIcon')
+                                    .classList.remove('loading');
+                            }, 500);
+
+                            resolve({ allClean: allClean, unclean: unclean });
+                        }
+                    });
                 });
             });
         });
-    });
-};
+    }
+}
 
-init();
+new GitPanda();

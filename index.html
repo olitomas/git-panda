@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="./static/css/semantic.min.css">
     <script src="./static/js/ghosttools.js"></script>
     <script src="./rivets.js"></script>
+    <script src="./rivetsBinders.js"></script>
     <style type="text/css">
         #alert .onlyfirst:not(:first-child){
           display: none!important;
@@ -37,6 +38,7 @@
         #reminderInput.error{
           border: 2px solid #db2828;
         }
+
     </style>
 
 
@@ -56,8 +58,8 @@
       </div>
       <div class="item right">
 
-        <div>Remind me every <input id="reminderInput" rv-value="data.waitHours" rv-on-keyup="changeCronJob" type="text"> hours</div>
-        <div id="refreshButton" rv-on-click="refreshRepos"><i id="refreshIcon" class="notched refresh icon"></i></div>
+        <div>Remind me every <input id="reminderInput" rv-value="app.data.waitHours" rv-on-keyup="app.changeCronJob" type="text"> hours</div>
+        <div id="refreshButton" rv-on-click="app.refreshRepos"><i id="refreshIcon" class="notched refresh icon"></i></div>
       </div>
     </div>
 
@@ -66,16 +68,16 @@
       <h1 style="margin: 0;" class="ui inverted header">
         Git Panda
       </h1>
-      <h6 style="margin-top: 0;">By: olitomas.com</h6>
-      <a rv-show="data.isPaid" class="ui teal tag label">Unregistered</a>
-      <a rv-hide="data.isPaid" class="ui red tag label">Unregistered</a>
+      <h6 style="margin-top: 0;">By: <a href="https://olitomas.com">olitomas.com</a></h6>
+      <a rv-show="app.data.isPaid" class="ui teal tag label">Unregistered</a>
+      <a id="registerBtn" rv-hide="app.data.isPaid" class="ui red tag label">Unregistered</a>
 
 
     </div>
 
   </div>
  
-  <div class="ui container" rv-hide="data.allClean">
+  <div class="ui container" rv-hide="app.data.allClean">
       <div style="margin-top: 20px;" class="ui red message"><i class="attention icon"></i> You have git repos that need a little push (working tree not clean)</div>
   </div>
 
@@ -93,11 +95,14 @@
               </th>
             </tr></thead>
             <tbody>
-              <tr rv-each-repo="data.gitPaths" rv-show="repo.workingTreeClean">
+              <tr rv-each-repo="app.data.gitPaths" rv-class-hidden="repo.workingTreeClean | reverse" rv-show="repo.workingTreeClean">
                 <td class="collapsing positive">
-                  <i class="folder icon"></i> {repo.name}
+                  <i class="folder icon"></i> {repo.name} 
                 </td>
-                <td class="ui right aligned" rv-on-click="removeItem"><div class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div></td>
+                <td class="ui right aligned">
+                    <div rv-on-click="app.openItemInTerminal" class="ui button tiny center aligned"><i class="icon terminal"></i></div>
+                    <div rv-on-click="app.openItemFolder" class="ui button tiny center aligned"><i class="icon folder"></i></div>
+                    <div rv-on-click="app.removeItem" class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div></td>
               </tr>
             </tbody>
           </table>
@@ -110,11 +115,11 @@
               </th>
             </tr></thead>
             <tbody>
-              <tr rv-each-repo="data.gitPaths" rv-hide="repo.workingTreeClean">
+              <tr rv-each-repo="app.data.gitPaths" rv-hide="repo.workingTreeClean" rv-class-hidden="repo.workingTreeClean">
                 <td class="collapsing negative">
                   <i class="folder icon"></i> {repo.name}
                 </td>
-                <td class="ui right aligned" rv-on-click="removeItem"><div class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div></td>
+                <td class="ui right aligned" rv-on-click="app.removeItem"><div class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div></td>
               </tr>
             </tbody>
           </table>
@@ -125,6 +130,6 @@
 
   <script>
     // You can also require other files to run in this process
-    require('./renderer.js')
+    require('./renderer.js');
   </script>
 </html>
