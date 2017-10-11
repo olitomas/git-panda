@@ -2,12 +2,12 @@ const ipc = require('electron').ipcRenderer;
 const remote = require('electron').remote;
 const shell = require('electron').shell;
 const spawn = require('child_process').spawn;
-var fs = require('fs');
-var main = remote.require('./main.js');
-var CronJob = require('cron').CronJob;
+const fs = require('fs');
+const main = remote.require('./main.js');
 const path = require('path');
 const app = remote.app;
-var userPath = app.getPath('userData');
+const userPath = app.getPath('userData');
+
 
 var cronTask = null;
 
@@ -18,11 +18,11 @@ let data = {
     waitHours: 4
 };
 
+
 class GitPanda{
     constructor() {
         this.getData().then((data) => {
             this.data = data || data;
-            console.log(data);
 
             rivets.bind(document.getElementById('body'), {
                 app: this
@@ -76,44 +76,88 @@ class GitPanda{
 
         this.ipcEvents();
 
+
+        // Link to olitomas.com
+
+        const olitomas = document.getElementById('olitomas');
+        olitomas.addEventListener('click', (event) => {
+            shell.openExternal('https://olitomas.com/');
+        });
+
+        // Link to Github
+
+        const github = document.getElementById('github');
+        github.addEventListener('click', (event) => {
+            shell.openExternal('https://github.com/olitomas/git-panda');
+        });
+
+
         // Register
+
         const registerBtn = document.getElementById('registerBtn');
+        const registeredBtn = document.getElementById('registeredBtn');
         registerBtn.addEventListener('click', (event) => {
+            this.registerDialog();
+        });
+
+        registeredBtn.addEventListener('click', (event) => {
             this.registerDialog();
         });
     }
 
-    registerDialog() {
+    registerDialog(a, b) {
+        let bind;
         new Modal({
             title: 'Register',
             message: `
-                <div class="ui text-container">
-                    Hello world
-                </div>
-                <div class="ui button">
-                    Hello world
-                </div>
+                <div id="registerModal">
+                    <div class="ui text-container center">
+                        <p>
+                            Registering is pretty simple, I use the honor system.
+                        </p>
+                         
+                         <p>
+                            If you intend to use Git Panda then please donate $5 by clicking the button below.
+                         </p>
 
+                         <p>
+                            Once you have donated you are free to check the "Registered user" checkbox.
+                        </p>
+                    </div>
+                    <br>
+                    <div class="row">
+                      <div class="center aligned column">
+                        <a id="donate" class="ui huge button">Donate</a>
+                      </div>
+                    </div>
 
-                <div class="ui middle aligned stackable grid container">
-                  <div class="row">
-                    <div class="eight wide column">
-                      <h3 class="ui header">We Help Companies and Companions</h3>
-                      <p>We can give your company superpowers to do things that they never thought possible. Let us delight your customers and empower your needs...through pure data analytics.</p>
-                      <h3 class="ui header">We Make Bananas That Can Dance</h3>
-                      <p>Yes that's right, you thought it was the stuff of dreams, but even bananas can be bioengineered.</p>
+                    <br>
+
+                    <div class="ui middle aligned container">
+                        <div class="row">
+                            <div class="ui checkbox"> 
+                              <input id="isPaid" type="checkbox" rv-checked="app.data.isPaid">
+                              <label>I have registered</label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="six wide right floated column">
-                      <img src="assets/images/wireframe/white-image.png" class="ui large bordered rounded image">
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="center aligned column">
-                      <a class="ui huge button">Check Them Out</a>
-                    </div>
-                  </div>
                 </div>
             `,
+            onOpen: () => {
+
+                document.getElementById('donate').addEventListener('click', () => {
+                    shell.openExternal('https://paypal.me/olitomas/5');
+                });
+
+                bind = rivets.bind(document.getElementById('registerModal'), {
+                    app: this
+                });
+
+            },
+            onClose: () => {
+                this.saveData();
+                bind.unbind();
+            }
         });
     }
 
@@ -199,12 +243,11 @@ class GitPanda{
 
         cronTime = cronTime || 4;
 
-        if(cronTask) cronTask.stop();
+        var millisec = 3600000 * cronTime;
 
-        //Cron job
-        cronTask = new CronJob({
-          cronTime: '10 */' + cronTime + ' * * * ',
-          onTick: () => {
+        if(cronTask) clearInterval(cronTask);
+
+        cronTask = setInterval(() => {
             this.refreshRepos().then(rsp => {
                 if (!rsp.allClean) {
                     this.notifyUser(
@@ -213,19 +256,14 @@ class GitPanda{
                     );
                 }
             });
-          },
-          start: false,
-          timeZone: 'America/Los_Angeles'
-        });
-
-        cronTask.start();
+        }, millisec);
     }
 
     getData() {
         return new Promise((resolve) => {
             fs.readFile(userPath + '/data.json', 'utf8', (err, d) => {
+                if(err) new Alert('danger', err);
                 data = d ? JSON.parse(d) : data;
-                console.log('getting data', data);
                 resolve(data);
             });
         });
@@ -267,11 +305,7 @@ class GitPanda{
 
     saveData() {
         return new Promise((resolve, reject) => {
-            console.log('userPath', userPath);
-            console.log('this.data', this.data);
             fs.writeFile((userPath + '/data.json'), JSON.stringify(this.data), 'utf8', (rsp, error) => {
-                console.log(rsp);
-                console.log(error);
                 resolve({ success: true });
             });
         });
@@ -287,39 +321,11 @@ class GitPanda{
     }
 
     openItemFolder (a, b) {
-        console.log('calling openItemFolder');
         const self = b ? b.$parent.app : this;
         const index = b.$index;
         const path = self.data.gitPaths[index].path;
 
         shell.showItemInFolder(path);
-    }
-
-    openItemInTerminal (a, b) {
-        console.log('calling openItemInTerminal');
-        const self = b ? b.$parent.app : this;
-        const index = b.$index;
-        const path = self.data.gitPaths[index].path;
-
-        var child = spawn(
-             'D:\\DEV\\apache-tomcat-8.0.12\\bin\\startup.bat',
-             {
-                 env: {'CATALINA_HOME': 'D:\\DEV\\apache-tomcat-8.0.12'},
-                detached: true 
-             }
-        );
-
-
-        var child = spawn('test',{
-            // stdio: 'inherit'
-            cwd: path,
-            detached: true,
-            shell: true
-        });
-
-        child.on('exit', function (e, code) {
-            console.log("finished");
-        });
     }
     
     notifyUser (title, message) {

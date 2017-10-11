@@ -1,6 +1,6 @@
 const electron = require('electron');
 const {app, Menu, Tray} = require('electron');
-var platform = require('os').platform();  
+var platform = require('os').platform();
 
 // Module to control application life.
 

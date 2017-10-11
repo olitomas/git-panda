@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <title>Git reminder!</title>
     <link rel="stylesheet" type="text/css" href="./static/css/semantic.min.css">
@@ -8,128 +9,124 @@
     <script src="./rivets.js"></script>
     <script src="./rivetsBinders.js"></script>
     <style type="text/css">
-        #alert .onlyfirst:not(:first-child){
-          display: none!important;
-        }
 
-        #alert .onlyfirst:nth-child(1){
-          display: block;
-        }
+    #alert .onlyfirst:not(:first-child) {
+        display: none!important;
+    }
 
-        #refreshButton {
-           text-align: right;
-           font-size: 30px;
-           margin-left: 30px;
-        }
+    #alert .onlyfirst:nth-child(1) {
+        display: block;
+    }
 
-        #refreshIcon{
-          line-height: 1;
-        }
+    #refreshButton {
+        text-align: right;
+        font-size: 30px;
+        margin-left: 30px;
+    }
 
-        #reminderInput{
-          color: #000;
-          text-align: center;
-          width: 50px;
-          border: none;
-          margin: 0 5px;
-          outline: none;
-        }
+    #refreshIcon {
+        line-height: 1;
+    }
 
-        #reminderInput.error{
-          border: 2px solid #db2828;
-        }
+    #reminderInput {
+        color: #000;
+        text-align: center;
+        width: 50px;
+        border: none;
+        margin: 0 5px;
+        outline: none;
+    }
 
+    #reminderInput.error {
+        border: 2px solid #db2828;
+    }
     </style>
+</head>
 
-
-  </head>
-  <body id="body">
+<body id="body">
     <div class="ui inverted vertical masthead center aligned segment">
-    <div class="ui inverted menu">
-
-      <div class="item">
-        <div id="btn" class="ui primary button">
-            + Add git directory
+        <div class="ui inverted menu">
+            <div class="item">
+                <div id="btn" class="ui primary button">
+                    + Add git directory
+                </div>
+            </div>
+            <div class="item">
+                <a id="github" href="#"><i class="icon github"></i> Star on Github</a>
+            </div>
+            <div class="item right">
+                <div>Remind me every
+                    <input id="reminderInput" rv-value="app.data.waitHours" rv-on-keyup="app.changeCronJob" type="text"> hours</div>
+                <div id="refreshButton" rv-on-click="app.refreshRepos"><i id="refreshIcon" class="notched refresh icon"></i></div>
+            </div>
         </div>
-      </div>
-
-      <div class="item">
-        <i class="icon github"></i> Star us on Github
-      </div>
-      <div class="item right">
-
-        <div>Remind me every <input id="reminderInput" rv-value="app.data.waitHours" rv-on-keyup="app.changeCronJob" type="text"> hours</div>
-        <div id="refreshButton" rv-on-click="app.refreshRepos"><i id="refreshIcon" class="notched refresh icon"></i></div>
-      </div>
-    </div>
-
-    <div class="ui text container">
-      <img src="icons/png/512x512.png" style="width: 180px;">
-      <h1 style="margin: 0;" class="ui inverted header">
+        <div class="ui text container">
+            <img src="icons/png/512x512.png" style="width: 180px;">
+            <h1 style="margin: 0;" class="ui inverted header">
         Git Panda
       </h1>
-      <h6 style="margin-top: 0;">By: <a href="https://olitomas.com">olitomas.com</a></h6>
-      <a rv-show="app.data.isPaid" class="ui teal tag label">Unregistered</a>
-      <a id="registerBtn" rv-hide="app.data.isPaid" class="ui red tag label">Unregistered</a>
-
-
-    </div>
-
-  </div>
- 
-  <div class="ui container" rv-hide="app.data.allClean">
-      <div style="margin-top: 20px;" class="ui red message"><i class="attention icon"></i> You have git repos that need a little push (working tree not clean)</div>
-  </div>
-
-
-  <div class="ui vertical stripe quote segment">
-
-    <div class="ui equal width stackable internally celled grid">
-
-      <div class="center aligned row">
-        <div class="column">
-          <table class="ui celled striped table">
-            <thead>
-              <tr><th colspan="2">
-                Clean repositories
-              </th>
-            </tr></thead>
-            <tbody>
-              <tr rv-each-repo="app.data.gitPaths" rv-class-hidden="repo.workingTreeClean | reverse" rv-show="repo.workingTreeClean">
-                <td class="collapsing positive">
-                  <i class="folder icon"></i> {repo.name} 
-                </td>
-                <td class="ui right aligned">
-                    <div rv-on-click="app.openItemInTerminal" class="ui button tiny center aligned"><i class="icon terminal"></i></div>
-                    <div rv-on-click="app.openItemFolder" class="ui button tiny center aligned"><i class="icon folder"></i></div>
-                    <div rv-on-click="app.removeItem" class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div></td>
-              </tr>
-            </tbody>
-          </table>
+            <h6 style="margin-top: 0;">By: <a id="olitomas" href="#">olitomas.com</a></h6>
+            <a id="registeredBtn" rv-show="app.data.isPaid" class="ui teal tag label">Registered</a>
+            <a id="registerBtn" rv-hide="app.data.isPaid" class="ui red tag label">Unregistered</a>
         </div>
-        <div class="column">
-          <table class="ui celled striped table">
-            <thead>
-              <tr><th colspan="2">
-                Git repositories that need love
-              </th>
-            </tr></thead>
-            <tbody>
-              <tr rv-each-repo="app.data.gitPaths" rv-hide="repo.workingTreeClean" rv-class-hidden="repo.workingTreeClean">
-                <td class="collapsing negative">
-                  <i class="folder icon"></i> {repo.name}
-                </td>
-                <td class="ui right aligned" rv-on-click="app.removeItem"><div class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
-  </body>
+    <div class="ui container" rv-hide="app.data.allClean">
+        <div style="margin-top: 20px;" class="ui red message"><i class="attention icon"></i> You have git repos that need a little push (working tree not clean)</div>
+    </div>
+    <div class="ui vertical stripe quote segment">
+        <div class="ui equal width stackable internally celled grid">
+            <div class="center aligned row">
+                <div class="column">
+                    <table class="ui celled striped table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    Clean repositories
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr rv-each-repo="app.data.gitPaths" rv-class-hidden="repo.workingTreeClean | reverse" rv-show="repo.workingTreeClean">
+                                <td class="collapsing positive">
+                                    <i class="folder icon"></i> {repo.name}
+                                </td>
+                                <td class="ui right aligned">
+                                    <div rv-on-click="app.openItemFolder" class="ui button tiny center aligned"><i class="icon folder"></i></div>
+                                    <div rv-on-click="app.removeItem" class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="column">
+                    <table class="ui celled striped table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    Git repositories that need love
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr rv-each-repo="app.data.gitPaths" rv-hide="repo.workingTreeClean" rv-class-hidden="repo.workingTreeClean">
+                                <td class="collapsing negative">
+                                    <i class="folder icon"></i> {repo.name}
+                                </td>
+                                <td class="ui right aligned">
+                                    <div rv-on-click="app.openItemFolder" class="ui button tiny center aligned"><i class="icon folder"></i></div>
+                                    <div rv-on-click="app.removeItem" class="ui button tiny center aligned"><i class="icon trash"></i> Remove</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+</body>
+<script>
+// You can also require other files to run in this process
+require('./renderer.js');
 
-  <script>
-    // You can also require other files to run in this process
-    require('./renderer.js');
-  </script>
+</script>
+
 </html>

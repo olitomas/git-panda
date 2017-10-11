@@ -21,3 +21,8 @@ No matter how many times I tell my self I am going to commit my code many times 
 1. You tell Git Panda what projects to look out for.
 2. You decide how frequently you want Git Panda to remind you (Default: every 4 hours).
 3. If you have uncommited code in any of your projects then your operating system will notify you.
+
+
+
+![alt](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)
+[This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/)
