@@ -121,7 +121,7 @@ class GitPanda{
                          </p>
 
                          <p>
-                            Once you have donated you are free to check the "Registered user" checkbox.
+                            Once you have donated you are free to check the "I have registered" checkbox.
                         </p>
                     </div>
                     <br>
@@ -175,6 +175,8 @@ class GitPanda{
                 });
 
                 if(index){
+                    // Deleting from data since nothing was found in path
+                    console.log('yep');
                     this.data.gitPaths.splice(index, 1);
                     this.saveData().then(() => {
                         this.refreshRepos();
@@ -190,8 +192,13 @@ class GitPanda{
                 shell: true
             });
 
+
             // Gets called when the bash script is successfull
             command.stdout.on('data', data => {
+
+                const pathSplit = path.split(/[\\\/]/);
+                const projectName = pathSplit[pathSplit.length - 1];
+
                 let workingTreeClean = false;
                 let branchIsAhead = false;
 
@@ -203,8 +210,6 @@ class GitPanda{
                     branchIsAhead = true;
                 }
 
-                const pathSplit = path.split(/[\\\/]/);
-                const projectName = pathSplit[pathSplit.length - 1];
 
                 resolve({
                     name: projectName,
@@ -217,6 +222,7 @@ class GitPanda{
 
             // Gets called when the bash script returns an error
             command.stderr.on('data', err => {
+                console.log(error, name);
                 resolve({ error: true });
             });
 
@@ -355,15 +361,17 @@ class GitPanda{
             }
 
             data.gitPaths.forEach((obj, key) => {
+
                 self.checkGitStatus(obj, key).then(statusObj => {
+
                     if (!statusObj.workingTreeClean){
                         allClean = false;
                         const name = statusObj.name;
                         unclean.push(name);
                     }
+
                     self.saveDirectory(statusObj).then(() => {
                         counter++;
-
                         if (counter === len) {
                             //Hack to update rivets view
                             data.allClean = allClean;

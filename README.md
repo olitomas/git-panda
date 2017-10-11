@@ -1,6 +1,8 @@
 # Git Panda
 
 **Desktop application that reminds you to commit your code to git**
+ 
+![alt](https://tweecode.com/icloud/images/olitomas/5461l1507729713.png?size=750x_)
 
 ## I made this application for 2 main reasons.
 
