@@ -1,15 +1,14 @@
 const ipc = require('electron').ipcRenderer;
 const remote = require('electron').remote;
 const shell = require('electron').shell;
-const spawn = require('child_process').spawn;
 const fs = require('fs');
 const main = remote.require('./main.js');
 const path = require('path');
 const app = remote.app;
 const userPath = app.getPath('userData');
+const exec = require('child_process').exec;
 
-
-var cronTask = null;
+let cronTask = null;
 
 let data = {
     gitPaths: [],
@@ -29,6 +28,7 @@ class GitPanda{
             });
 
             this.startCronJob(data.waitHours);
+            this.openAtLogin(this.data.openAtLogin || false);
         });
 
         this.setEvents();
@@ -72,10 +72,21 @@ class GitPanda{
         });
     }
 
+    openAtLogin(value) {
+        app.setLoginItemSettings({
+          openAtLogin: value,
+        });
+    }
+
+    onOpenAtLoginChange(a, b) {
+        const value = a.target.checked;
+        b.app.openAtLogin(value);
+        b.app.saveData();
+    }
+
     setEvents() {
 
         this.ipcEvents();
-
 
         // Link to olitomas.com
 
@@ -103,6 +114,7 @@ class GitPanda{
         registeredBtn.addEventListener('click', (event) => {
             this.registerDialog();
         });
+
     }
 
     registerDialog(a, b) {
@@ -166,7 +178,7 @@ class GitPanda{
         const name = obj.name;
 
         return new Promise((resolve, reject) => {
-            var fs = require('fs');
+            const fs = require('fs');
 
             if (!fs.existsSync(path)) {
                 new Modal('danger', {
@@ -187,54 +199,31 @@ class GitPanda{
                 return;
             }
 
-            const command = spawn('git status', {
-                cwd: path,
-                shell: true
-            });
+            const command = 'cd ' + path + '; git status --porcelain';
 
+            exec(command, (error, stdout, stderr) => {
+                if(error){
+                    resolve({ error: true });
+                }else{
+                    const pathSplit = path.split(/[\\\/]/);
+                    const projectName = pathSplit[pathSplit.length - 1];
 
-            // Gets called when the bash script is successfull
-            command.stdout.on('data', data => {
+                    let workingTreeClean = stdout ? false : true;
 
-                const pathSplit = path.split(/[\\\/]/);
-                const projectName = pathSplit[pathSplit.length - 1];
-
-                let workingTreeClean = false;
-                let branchIsAhead = false;
-
-                if (`${data}`.indexOf('working tree clean') > -1) {
-                    workingTreeClean = true;
+                    resolve({
+                        name: projectName,
+                        path: path,
+                        workingTreeClean: workingTreeClean,
+                        error: null
+                    });
                 }
-
-                if (`${data}`.indexOf('branch is ahead of') > -1) {
-                    branchIsAhead = true;
-                }
-
-
-                resolve({
-                    name: projectName,
-                    path: path,
-                    workingTreeClean: workingTreeClean,
-                    branchIsAhead: branchIsAhead,
-                    error: null
-                });
             });
-
-            // Gets called when the bash script returns an error
-            command.stderr.on('data', err => {
-                console.log(error, name);
-                resolve({ error: true });
-            });
-
-            // ls.on('close', (code) => {
-            //   console.log(`child process exited with code ${code}`);
-            // });
         });
 
     }
 
     changeCronJob(a,b) {
-        var value = a.target.value;
+        const value = a.target.value;
 
         if(value && !isNaN(value)){
             b.app.startCronJob(value);
@@ -249,7 +238,7 @@ class GitPanda{
 
         cronTime = cronTime || 4;
 
-        var millisec = 3600000 * cronTime;
+        const millisec = 3600000 * cronTime;
 
         if(cronTask) clearInterval(cronTask);
 
@@ -336,7 +325,7 @@ class GitPanda{
     
     notifyUser (title, message) {
         // Do this from the renderer process
-        var notif = new window.Notification(title, {
+        const notif = new window.Notification(title, {
           body: message
         });
 

@@ -54,6 +54,13 @@
             <div class="item">
                 <a id="github" href="#"><i class="icon github"></i> Star on Github</a>
             </div>
+
+            <div class="item">
+                <div class="ui checkbox"> 
+                  <input id="isPaid" type="checkbox" rv-on-change="app.onOpenAtLoginChange" rv-checked="app.data.openOnStartup">
+                  <label style="color: #fff;">Open on startup</label>
+                </div>
+            </div>
             <div class="item right">
                 <div>Remind me every
                     <input id="reminderInput" rv-value="app.data.waitHours" rv-on-keyup="app.changeCronJob" type="text"> hours</div>
