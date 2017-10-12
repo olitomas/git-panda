@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "buildmac": "electron-packager . --out=dist/osx --platform=darwin --overwrite --arch=x64 --icon=icons/mac/icon.icns"
+    "buildmac": "electron-packager . --out=dist/osx --platform=darwin --overwrite --arch=x64 --icon=icons/mac/icon.icns",
+    "buildwin": "electron-packager . --out=dist/win --overwrite --asar=true --platform=win32 --arch=ia32 --icon=icons/win/icon.ico --prune=true --version-string.ProductName='Git Panda'"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
