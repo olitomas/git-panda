@@ -1,0 +1,30 @@
+#alert .onlyfirst:not(:first-child) {
+    display: none!important;
+}
+
+#alert .onlyfirst:nth-child(1) {
+    display: block;
+}
+
+#refreshButton {
+    text-align: right;
+    font-size: 30px;
+    margin-left: 30px;
+}
+
+#refreshIcon {
+    line-height: 1;
+}
+
+#reminderInput {
+    color: #000;
+    text-align: center;
+    width: 50px;
+    border: none;
+    margin: 0 5px;
+    outline: none;
+}
+
+#reminderInput.error {
+    border: 2px solid #db2828;
+}

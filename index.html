@@ -4,43 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Git reminder!</title>
-    <link rel="stylesheet" type="text/css" href="./static/css/semantic.min.css">
-    <script src="./static/js/ghosttools.js"></script>
-    <script src="./rivets.js"></script>
-    <script src="./rivetsBinders.js"></script>
-    <style type="text/css">
 
-    #alert .onlyfirst:not(:first-child) {
-        display: none!important;
-    }
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="./static/lib/css/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="./static/css/main.css">
 
-    #alert .onlyfirst:nth-child(1) {
-        display: block;
-    }
-
-    #refreshButton {
-        text-align: right;
-        font-size: 30px;
-        margin-left: 30px;
-    }
-
-    #refreshIcon {
-        line-height: 1;
-    }
-
-    #reminderInput {
-        color: #000;
-        text-align: center;
-        width: 50px;
-        border: none;
-        margin: 0 5px;
-        outline: none;
-    }
-
-    #reminderInput.error {
-        border: 2px solid #db2828;
-    }
-    </style>
 </head>
 
 <body id="body">
@@ -130,6 +98,11 @@
             </div>
         </div>
 </body>
+
+<!-- JS -->
+<script src="./static/lib/js/rivets.js"></script>
+<script src="./static/js/rivetsBinders.js"></script>
+<script src="./static/lib/js/ghosttools.js"></script>
 <script>
 // You can also require other files to run in this process
 require('./renderer.js');

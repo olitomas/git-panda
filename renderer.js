@@ -8,6 +8,7 @@ const app = remote.app;
 const userPath = app.getPath('userData');
 const exec = require('child_process').exec;
 
+
 let cronTask = null;
 
 let data = {
@@ -19,6 +20,7 @@ let data = {
 
 
 class GitPanda{
+
     constructor() {
         this.getData().then((data) => {
             this.data = data || data;
@@ -66,8 +68,16 @@ class GitPanda{
         });
 
         ipc.on('ping', (event, message) => {
-            if (message === 'refresh') {
+            if (message.name === 'refresh') {
                 this.refreshRepos();
+            }
+
+            if(message.name === 'log') {
+                console.log('main.js log:', message.data);
+            }
+
+            if(message.name === 'close') {
+                this.closeOrMinimize();
             }
         });
     }
@@ -168,6 +178,46 @@ class GitPanda{
             },
             onClose: () => {
                 this.saveData();
+                bind.unbind();
+            }
+        });
+    }
+
+    closeGitPanda() {
+        main.closeGitPanda();
+    }
+
+    minimizeGitPanda(a, b) {
+        b.app.closeOrMinimizeModal.close();
+        const w = remote.getCurrentWindow();
+        w.minimize();
+    }
+
+    closeOrMinimize(a, b) {
+        let bind;
+        this.closeOrMinimizeModal = new Modal({
+            title: 'Close Git Panda or minimize ?',
+            message: `
+                <div id="closeOrMinimize">
+                    <div class="ui text-container center">
+                        <div class="center aligned column">
+                          <a rv-on-click="app.closeGitPanda" class="ui huge button red">Close</a>
+                        </div>
+
+                        <div class="center aligned column">
+                          <a rv-on-click="app.minimizeGitPanda" class="ui huge button green">Minimize</a>
+                        </div>
+                    </div>
+                </div>
+            `,
+            onOpen: () => {
+
+                bind = rivets.bind(document.getElementById('closeOrMinimize'), {
+                    app: this
+                });
+
+            },
+            onClose: () => {
                 bind.unbind();
             }
         });

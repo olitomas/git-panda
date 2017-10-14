@@ -29,6 +29,11 @@ exports.showMainWindow = () => {
     mainWindow.show();
 };
 
+exports.closeGitPanda = () => {  
+    mainWindow.removeAllListeners('close');
+    app.quit();
+};
+
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -47,19 +52,16 @@ function createWindow () {
 
   // mainWindow.on('minimize',function(event){
   //     event.preventDefault();
-  //     mainWindow.hide();
+  //     mainWindow.minimize();
   // });
 
-  // mainWindow.on('close', function (event) {
-  //     if( !app.isQuiting) {
-  //         event.preventDefault()
-  //         mainWindow.hide();
-  //     }
-  //     return false;
-  // });
+  mainWindow.on('close', function (event) {
+      mainWindow.webContents.send('ping', {name: 'close'});
+      event.preventDefault();
+  });
 
   mainWindow.on('focus', () => {
-    mainWindow.webContents.send('ping', 'refresh');
+    mainWindow.webContents.send('ping', {name: 'refresh'});
   });
 
   // and load the index.html of the app.
