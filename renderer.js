@@ -22,14 +22,14 @@ let data = {
 class GitPanda{
 
     constructor() {
-        this.getData().then((data) => {
-            this.data = data || data;
+        this.getData().then((response) => {
+            this.data = response;
 
             rivets.bind(document.getElementById('body'), {
                 app: this
             });
 
-            this.startCronJob(data.waitHours);
+            this.startCronJob(this.data.waitHours || data.waitHours);
             this.openAtLogin(this.data.openAtLogin || false);
         });
 
@@ -289,7 +289,6 @@ class GitPanda{
     startCronJob (cronTime) {
 
         cronTime = cronTime || 4;
-
         const millisec = 3600000 * cronTime;
 
         if(cronTask) clearInterval(cronTask);

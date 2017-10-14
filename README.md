@@ -9,6 +9,10 @@
 2. You decide how frequently you want Git Panda to remind you (Default: every 4 hours).
 3. If you have uncommited code in any of your projects then your operating system will notify you.
 
+[Mac - DMG installer](https://drive.google.com/open?id=0BzLQvGkC19hXc2FETGw5VmVxUjg)
+
+[Windows - exe installer](https://drive.google.com/open?id=0BzLQvGkC19hXeGhMd1BDbkZEY2c)
+
 ## I made this application for 2 main reasons.
 
 ### 1. I really needed it
