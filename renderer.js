@@ -199,15 +199,17 @@ class GitPanda{
             title: 'Close Git Panda or minimize ?',
             message: `
                 <div id="closeOrMinimize">
-                    <div class="ui text-container center">
-                        <div class="center aligned column">
-                          <a rv-on-click="app.closeGitPanda" class="ui huge button red">Close</a>
-                        </div>
 
-                        <div class="center aligned column">
-                          <a rv-on-click="app.minimizeGitPanda" class="ui huge button green">Minimize</a>
-                        </div>
+                    <div class="ui text-container center">
+                        <button rv-on-click="app.closeGitPanda" class="ui secondary button">
+                          Close
+                        </button>
+
+                        <button rv-on-click="app.minimizeGitPanda" class="ui button">
+                          Minimize
+                        </button>
                     </div>
+
                 </div>
             `,
             onOpen: () => {

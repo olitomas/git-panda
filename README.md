@@ -4,6 +4,11 @@
  
 ![alt](https://tweecode.com/icloud/images/olitomas/5461l1507729713.png?size=750x_)
 
+# How does it work ?
+1. You tell Git Panda what projects to look out for.
+2. You decide how frequently you want Git Panda to remind you (Default: every 4 hours).
+3. If you have uncommited code in any of your projects then your operating system will notify you.
+
 ## I made this application for 2 main reasons.
 
 ### 1. I really needed it
@@ -18,12 +23,6 @@ $ git push
 No matter how many times I tell my self I am going to commit my code many times a day I always end up forgetting.
 
 ### 2. I have wanted to try out Electron for a while now (Spoiler: Its awesome!)
-
-# How does it work ?
-1. You tell Git Panda what projects to look out for.
-2. You decide how frequently you want Git Panda to remind you (Default: every 4 hours).
-3. If you have uncommited code in any of your projects then your operating system will notify you.
-
 
 
 ![alt](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)
