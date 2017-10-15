@@ -275,9 +275,9 @@ class GitPanda{
     }
 
     changeCronJob(a,b) {
-        const value = a.target.value;
+        const value = parseInt(a.target.value);
 
-        if(value && !isNaN(value)){
+        if(value){
             b.app.startCronJob(value);
             document.getElementById('reminderInput').classList.remove('error');
             b.app.saveData();
