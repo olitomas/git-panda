@@ -31,6 +31,10 @@ No matter how many times I tell my self I am going to commit my code many times 
 ### 2. I have wanted to try out Electron for a while now (Spoiler: Its awesome!)
 
 
+### I recommend turning of the sound for alerts. In mac this is the settings I personally prefer:
+![alt](https://tweecode.com/icloud/images/olitomas/14563l1508087903.png?suze=500x_)
+
+
 ![alt](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)
 
 
