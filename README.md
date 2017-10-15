@@ -13,6 +13,8 @@
 
 [Windows - exe installer](https://drive.google.com/open?id=0BzLQvGkC19hXeGhMd1BDbkZEY2c)
 
+Linux installers coming soon
+
 ## I made this application for 2 main reasons.
 
 ### 1. I really needed it
